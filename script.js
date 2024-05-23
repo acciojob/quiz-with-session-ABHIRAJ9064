@@ -1,90 +1,95 @@
-document.addEventListener("DOMContentLoaded", function() {
-  const questions = [
-    {
-      question: "What is the capital of France?",
-      options: ["Paris", "London", "Berlin", "Madrid"],
-      correctAnswer: "Paris"
-    },
-    {
-      question: "What is the largest planet in our solar system?",
-      options: ["Earth", "Mars", "Saturn", "Jupiter"],
-      correctAnswer: "Jupiter"
-    },
-    {
-      question: "Who wrote 'Romeo and Juliet'?",
-      options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
-      correctAnswer: "William Shakespeare"
-    },
-    {
-      question: "What is the chemical symbol for water?",
-      options: ["H2O", "CO2", "NaCl", "O2"],
-      correctAnswer: "H2O"
-    },
-    {
-      question: "Which country is known as the Land of the Rising Sun?",
-      options: ["China", "Japan", "India", "South Korea"],
-      correctAnswer: "Japan"
-    }
-  ];
+document.addEventListener('DOMContentLoaded', function() {
+    const questions = [
+        {
+            question: 'What is the capital of France?',
+            options: ['London', 'Paris', 'Rome', 'Berlin'],
+            answer: 'Paris'
+        },
+        {
+            question: 'Who wrote "Romeo and Juliet"?',
+            options: ['William Shakespeare', 'Charles Dickens', 'Jane Austen', 'Leo Tolstoy'],
+            answer: 'William Shakespeare'
+        },
+        {
+            question: 'What is the chemical symbol for water?',
+            options: ['H2O', 'CO2', 'NaCl', 'O2'],
+            answer: 'H2O'
+        },
+        {
+            question: 'What is the largest planet in our solar system?',
+            options: ['Earth', 'Jupiter', 'Mars', 'Venus'],
+            answer: 'Jupiter'
+        },
+        {
+            question: 'What is the tallest mammal?',
+            options: ['Elephant', 'Giraffe', 'Whale', 'Polar Bear'],
+            answer: 'Giraffe'
+        }
+    ];
 
-  const quizForm = document.getElementById("quiz-form");
-  const questionsList = document.getElementById("questions-list");
-  const scoreDisplay = document.getElementById("score-display");
+    const quizForm = document.getElementById('quiz-form');
+    const questionsList = document.getElementById('questions-list');
+    const scoreDisplay = document.getElementById('score');
 
-  function populateQuestions() {
-    questions.forEach((q, index) => {
-      const listItem = document.createElement("li");
-      listItem.innerHTML = `
-        <strong>${q.question}</strong>
-        <ul>
-          ${q.options.map(option => `
-            <li>
-              <label>
-                <input type="radio" name="question${index}" value="${option}" ${getOptionStatus(index, option)}>
-                ${option}
-              </label>
-            </li>
-          `).join('')}
-        </ul>
-      `;
-      questionsList.appendChild(listItem);
+    // Load saved progress from session storage
+    const savedProgress = JSON.parse(sessionStorage.getItem('progress')) || [];
+
+    // Display questions
+    questions.forEach((question, index) => {
+        const li = document.createElement('li');
+        const label = document.createElement('label');
+        label.textContent = question.question;
+        li.appendChild(label);
+
+        question.options.forEach((option, optionIndex) => {
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = `question${index}`;
+            input.value = option;
+            if (savedProgress[index] === option) {
+                input.checked = true;
+            }
+            const optionLabel = document.createElement('label');
+            optionLabel.textContent = option;
+            li.appendChild(input);
+            li.appendChild(optionLabel);
+        });
+
+        questionsList.appendChild(li);
     });
-  }
 
-  function getOptionStatus(questionIndex, option) {
-    const progress = JSON.parse(sessionStorage.getItem("progress"));
-    if (progress && progress[questionIndex] === option) {
-      return "checked";
-    }
-    return "";
-  }
+    // Event listener for form submission
+    quizForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(quizForm);
+        let score = 0;
 
-  function updateProgress() {
-    const progress = {};
-    quizForm.querySelectorAll('input[type="radio"]:checked').forEach(input => {
-      const questionIndex = input.name.replace("question", "");
-      progress[questionIndex] = input.value;
+        // Check answers and calculate score
+        formData.forEach((value, index) => {
+            if (value === questions[index].answer) {
+                score++;
+            }
+        });
+
+        // Display score
+        scoreDisplay.textContent = `Your score is ${score} out of ${questions.length}`;
+
+        // Save score to local storage
+        localStorage.setItem('score', score);
+
+        // Clear session storage for progress
+        sessionStorage.removeItem('progress');
     });
-    sessionStorage.setItem("progress", JSON.stringify(progress));
-  }
 
-  function calculateScore() {
-    const progress = JSON.parse(sessionStorage.getItem("progress"));
-    let score = 0;
-    questions.forEach((q, index) => {
-      if (progress && progress[index] === q.correctAnswer) {
-        score++;
-      }
+    // Event listener for radio button change
+    questionsList.addEventListener('change', function(event) {
+        const radioButton = event.target;
+        if (radioButton.tagName === 'INPUT' && radioButton.type === 'radio') {
+            const questionIndex = radioButton.name.replace('question', '');
+            const selectedOption = radioButton.value;
+            const progress = JSON.parse(sessionStorage.getItem('progress')) || [];
+            progress[questionIndex] = selectedOption;
+            sessionStorage.setItem('progress', JSON.stringify(progress));
+        }
     });
-    localStorage.setItem("score", score);
-    scoreDisplay.textContent = `Your score is ${score} out of ${questions.length}.`;
-  }
-
-  quizForm.addEventListener("change", updateProgress);
-  quizForm.addEventListener("submit", function(event) {
-    event.preventDefault();
-    calculateScore();
-  });
-
-  populateQuestions();
 });

@@ -1,37 +1,39 @@
 /*  your css code here. If applicable */
 body {
-  font-family: Arial, sans-serif;
+    font-family: Arial, sans-serif;
 }
 
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+#quiz-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 h1 {
-  text-align: center;
+    text-align: center;
+}
+
+#quiz-form {
+    margin-bottom: 20px;
 }
 
 ol {
-  list-style-type: none;
+    list-style-type: none;
+    padding: 0;
 }
 
 li {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 button {
-  display: block;
-  margin: 20px auto;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
 }
 
 button:hover {
-  background-color: #0056b3;
+    background-color: #0056b3;
 }
