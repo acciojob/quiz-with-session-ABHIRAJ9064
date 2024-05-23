@@ -1,7 +1,6 @@
-//your JS code here.
-
-// Do not change code below this line
+// Do not change code above this line
 // This code will just display the questions to the screen
+
 const questions = [
   {
     question: "What is the capital of France?",
@@ -30,6 +29,11 @@ const questions = [
   },
 ];
 
+const questionsElement = document.getElementById("questions");
+const submitButton = document.getElementById("submit");
+const scoreElement = document.getElementById("score");
+const userAnswers = [];
+
 // Display the quiz questions and choices
 function renderQuestions() {
   for (let i = 0; i < questions.length; i++) {
@@ -49,8 +53,51 @@ function renderQuestions() {
       const choiceText = document.createTextNode(choice);
       questionElement.appendChild(choiceElement);
       questionElement.appendChild(choiceText);
+
+      // Add event listener to save the selected option to session storage
+      choiceElement.addEventListener("change", function () {
+        const selectedOption = this.value;
+        userAnswers[i] = selectedOption;
+        saveProgressToSessionStorage();
+      });
     }
     questionsElement.appendChild(questionElement);
   }
 }
-renderQuestions();
+
+// Save user's progress to session storage
+function saveProgressToSessionStorage() {
+  sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+}
+
+// Load user's progress from session storage
+function loadProgressFromSessionStorage() {
+  const savedProgress = sessionStorage.getItem("progress");
+  if (savedProgress) {
+    userAnswers.splice(0, userAnswers.length, ...JSON.parse(savedProgress));
+  }
+}
+
+// Calculate and display the user's score
+function calculateScore() {
+  let score = 0;
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === questions[i].answer) {
+      score++;
+    }
+  }
+  return score;
+}
+
+// Display the user's score on the page and store it in local storage
+function displayScore() {
+  const score = calculateScore();
+  scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
+  localStorage.setItem("score", score);
+}
+
+// Load user's progress and display score on page load
+window.addEventListener("load", function () {
+  loadProgressFromSessionStorage();
+  renderQuestions();
+  displayScore();
