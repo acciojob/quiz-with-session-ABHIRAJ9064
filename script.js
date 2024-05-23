@@ -1,103 +1,90 @@
-// Do not change code above this line
-// This code will just display the questions to the screen
+document.addEventListener("DOMContentLoaded", function() {
+  const questions = [
+    {
+      question: "What is the capital of France?",
+      options: ["Paris", "London", "Berlin", "Madrid"],
+      correctAnswer: "Paris"
+    },
+    {
+      question: "What is the largest planet in our solar system?",
+      options: ["Earth", "Mars", "Saturn", "Jupiter"],
+      correctAnswer: "Jupiter"
+    },
+    {
+      question: "Who wrote 'Romeo and Juliet'?",
+      options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
+      correctAnswer: "William Shakespeare"
+    },
+    {
+      question: "What is the chemical symbol for water?",
+      options: ["H2O", "CO2", "NaCl", "O2"],
+      correctAnswer: "H2O"
+    },
+    {
+      question: "Which country is known as the Land of the Rising Sun?",
+      options: ["China", "Japan", "India", "South Korea"],
+      correctAnswer: "Japan"
+    }
+  ];
 
-const questions = [
-  {
-    question: "What is the capital of France?",
-    choices: ["Paris", "London", "Berlin", "Madrid"],
-    answer: "Paris",
-  },
-  {
-    question: "What is the highest mountain in the world?",
-    choices: ["Everest", "Kilimanjaro", "Denali", "Matterhorn"],
-    answer: "Everest",
-  },
-  {
-    question: "What is the largest country by area?",
-    choices: ["Russia", "China", "Canada", "United States"],
-    answer: "Russia",
-  },
-  {
-    question: "Which is the largest planet in our solar system?",
-    choices: ["Earth", "Jupiter", "Mars"],
-    answer: "Jupiter",
-  },
-  {
-    question: "What is the capital of Canada?",
-    choices: ["Toronto", "Montreal", "Vancouver", "Ottawa"],
-    answer: "Ottawa",
-  },
-];
+  const quizForm = document.getElementById("quiz-form");
+  const questionsList = document.getElementById("questions-list");
+  const scoreDisplay = document.getElementById("score-display");
 
-const questionsElement = document.getElementById("questions");
-const submitButton = document.getElementById("submit");
-const scoreElement = document.getElementById("score");
-const userAnswers = [];
+  function populateQuestions() {
+    questions.forEach((q, index) => {
+      const listItem = document.createElement("li");
+      listItem.innerHTML = `
+        <strong>${q.question}</strong>
+        <ul>
+          ${q.options.map(option => `
+            <li>
+              <label>
+                <input type="radio" name="question${index}" value="${option}" ${getOptionStatus(index, option)}>
+                ${option}
+              </label>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      questionsList.appendChild(listItem);
+    });
+  }
 
-// Display the quiz questions and choices
-function renderQuestions() {
-  for (let i = 0; i < questions.length; i++) {
-    const question = questions[i];
-    const questionElement = document.createElement("div");
-    const questionText = document.createTextNode(question.question);
-    questionElement.appendChild(questionText);
-    for (let j = 0; j < question.choices.length; j++) {
-      const choice = question.choices[j];
-      const choiceElement = document.createElement("input");
-      choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
-      choiceElement.setAttribute("value", choice);
-      if (userAnswers[i] === choice) {
-        choiceElement.setAttribute("checked", true);
+  function getOptionStatus(questionIndex, option) {
+    const progress = JSON.parse(sessionStorage.getItem("progress"));
+    if (progress && progress[questionIndex] === option) {
+      return "checked";
+    }
+    return "";
+  }
+
+  function updateProgress() {
+    const progress = {};
+    quizForm.querySelectorAll('input[type="radio"]:checked').forEach(input => {
+      const questionIndex = input.name.replace("question", "");
+      progress[questionIndex] = input.value;
+    });
+    sessionStorage.setItem("progress", JSON.stringify(progress));
+  }
+
+  function calculateScore() {
+    const progress = JSON.parse(sessionStorage.getItem("progress"));
+    let score = 0;
+    questions.forEach((q, index) => {
+      if (progress && progress[index] === q.correctAnswer) {
+        score++;
       }
-      const choiceText = document.createTextNode(choice);
-      questionElement.appendChild(choiceElement);
-      questionElement.appendChild(choiceText);
-
-      // Add event listener to save the selected option to session storage
-      choiceElement.addEventListener("change", function () {
-        const selectedOption = this.value;
-        userAnswers[i] = selectedOption;
-        saveProgressToSessionStorage();
-      });
-    }
-    questionsElement.appendChild(questionElement);
+    });
+    localStorage.setItem("score", score);
+    scoreDisplay.textContent = `Your score is ${score} out of ${questions.length}.`;
   }
-}
 
-// Save user's progress to session storage
-function saveProgressToSessionStorage() {
-  sessionStorage.setItem("progress", JSON.stringify(userAnswers));
-}
+  quizForm.addEventListener("change", updateProgress);
+  quizForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+    calculateScore();
+  });
 
-// Load user's progress from session storage
-function loadProgressFromSessionStorage() {
-  const savedProgress = sessionStorage.getItem("progress");
-  if (savedProgress) {
-    userAnswers.splice(0, userAnswers.length, ...JSON.parse(savedProgress));
-  }
-}
-
-// Calculate and display the user's score
-function calculateScore() {
-  let score = 0;
-  for (let i = 0; i < questions.length; i++) {
-    if (userAnswers[i] === questions[i].answer) {
-      score++;
-    }
-  }
-  return score;
-}
-
-// Display the user's score on the page and store it in local storage
-function displayScore() {
-  const score = calculateScore();
-  scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
-  localStorage.setItem("score", score);
-}
-
-// Load user's progress and display score on page load
-window.addEventListener("load", function () {
-  loadProgressFromSessionStorage();
-  renderQuestions();
-  displayScore();
+  populateQuestions();
+});
